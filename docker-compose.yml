@@ -1,0 +1,11 @@
+services:
+  ilo-fan-alert:
+    build: .
+    container_name: ilo-fan-alert
+    restart: unless-stopped
+    env_file:
+      - .env
+
+    # Optional: persist logs to host
+    # volumes:
+    #   - ./logs:/app/logs
