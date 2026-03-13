@@ -5,7 +5,17 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    depends_on:
+      - mailpit
 
     # Optional: persist logs to host
     # volumes:
     #   - ./logs:/app/logs
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"   # Web UI  → http://localhost:8025
+      - "1025:1025"   # SMTP
