@@ -8,16 +8,16 @@ services:
     ports:
       - "8181:8080"   # Dashboard → http://localhost:8181
     depends_on:
-      - mailpit
+      - postfix
 
     # Optional: persist logs to host
     # volumes:
     #   - ./logs:/app/logs
 
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: mailpit
+  postfix:
+    image: boky/postfix:latest
+    container_name: postfix
     restart: unless-stopped
-    ports:
-      - "8025:8025"   # Web UI  → http://localhost:8025
-      - "1025:1025"   # SMTP
+    environment:
+      - ALLOWED_SENDER_DOMAINS=${MAIL_DOMAIN:-localhost}
+      - HOSTNAME=${MAIL_DOMAIN:-localhost}
