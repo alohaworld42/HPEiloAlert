@@ -187,20 +187,29 @@ def build_email(subject, alerts, all_fans, is_recovery=False):
     return msg
 
 
-def send_email(msg):
-    if EMAIL["use_tls"]:
-        ctx = ssl.create_default_context()
-        with smtplib.SMTP(EMAIL["smtp_host"], EMAIL["smtp_port"]) as s:
-            s.ehlo()
-            s.starttls(context=ctx)
-            if EMAIL["username"]:
-                s.login(EMAIL["username"], EMAIL["password"])
-            s.sendmail(EMAIL["from_addr"], EMAIL["to_addrs"], msg.as_string())
-    else:
-        with smtplib.SMTP(EMAIL["smtp_host"], EMAIL["smtp_port"]) as s:
-            if EMAIL["username"]:
-                s.login(EMAIL["username"], EMAIL["password"])
-            s.sendmail(EMAIL["from_addr"], EMAIL["to_addrs"], msg.as_string())
+def send_email(msg, retries=3, delay=5):
+    for attempt in range(1, retries + 1):
+        try:
+            if EMAIL["use_tls"]:
+                ctx = ssl.create_default_context()
+                with smtplib.SMTP(EMAIL["smtp_host"], EMAIL["smtp_port"], timeout=10) as s:
+                    s.ehlo()
+                    s.starttls(context=ctx)
+                    if EMAIL["username"]:
+                        s.login(EMAIL["username"], EMAIL["password"])
+                    s.sendmail(EMAIL["from_addr"], EMAIL["to_addrs"], msg.as_string())
+            else:
+                with smtplib.SMTP(EMAIL["smtp_host"], EMAIL["smtp_port"], timeout=10) as s:
+                    if EMAIL["username"]:
+                        s.login(EMAIL["username"], EMAIL["password"])
+                    s.sendmail(EMAIL["from_addr"], EMAIL["to_addrs"], msg.as_string())
+            return
+        except (ConnectionRefusedError, OSError) as e:
+            if attempt < retries:
+                log(f"SMTP not ready (attempt {attempt}/{retries}), retrying in {delay}s...")
+                time.sleep(delay)
+            else:
+                raise
 
 
 def log(msg):
