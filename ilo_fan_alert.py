@@ -20,6 +20,7 @@ import urllib.error
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import make_msgid
 
 # ─────────────────────────────────────────────
 #  CONFIG FROM ENVIRONMENT
@@ -177,9 +178,10 @@ def build_email(subject, alerts, all_fans, is_recovery=False):
     )
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"]    = EMAIL["from_addr"]
-    msg["To"]      = ", ".join(EMAIL["to_addrs"])
+    msg["Subject"]    = subject
+    msg["From"]       = EMAIL["from_addr"]
+    msg["To"]         = ", ".join(EMAIL["to_addrs"])
+    msg["Message-ID"] = make_msgid(domain=EMAIL["from_addr"].split("@")[-1])
     msg.attach(MIMEText(plain, "plain"))
     msg.attach(MIMEText(html, "html"))
     return msg
